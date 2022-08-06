@@ -34,23 +34,16 @@ exports.build = function (
         style: { fontSize: "2em", fontWeight: "bold" },
       }),
       ui.Label({
-        value: "Dataset",
-        style: headerStyle,
+        value:
+          "Visualize LST (Land Surface Temperature) observed by GCOM-C (Global Change Observation Mission - Climate)." +
+          "The map shows the daytime or nighttime mean value over the specified period." +
+          "When you click the map, you can see the value and a time series chart on the point.",
       }),
       ui.Label({
-        value: "GCOM-C/SGLI L3 Land Surface Temperature",
-        style: { margin: "4px 8px 8px" },
-        targetUrl:
-          "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_LAND_LST_V3",
-      }),
-      ui.Label({
-        value: "Source Code",
-        style: headerStyle,
-      }),
-      ui.Label({
-        value: "GitHub: sankichi92/gcom-c_lst_overview",
-        style: { margin: "4px 8px 8px" },
-        targetUrl: "https://github.com/sankichi92/gcom-c_lst_overview/",
+        value:
+          "気候変動観測衛星「しきさい（GCOM-C）」で観測した地表面温度（Land Surface Temperature）について、" +
+          "指定した期間における日中または夜間の平均値を可視化する。" +
+          "また、地図上でクリックすると、その地点の値や時系列のグラフが表示される。",
       }),
       ui.Label({
         value: "Satellite Direction",
@@ -90,6 +83,25 @@ exports.build = function (
       }),
       pointLabel,
       valueLabel,
+      ui.Label({
+        value: "Dataset",
+        style: headerStyle,
+      }),
+      ui.Label({
+        value: "GCOM-C/SGLI L3 Land Surface Temperature",
+        style: { margin: "4px 8px 8px" },
+        targetUrl:
+          "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_LAND_LST_V3",
+      }),
+      ui.Label({
+        value: "Source Code",
+        style: headerStyle,
+      }),
+      ui.Label({
+        value: "GitHub: sankichi92/gcom-c_lst_overview",
+        style: { margin: "4px 8px 8px" },
+        targetUrl: "https://github.com/sankichi92/gcom-c_lst_overview/",
+      }),
     ],
     style: { width: "400px" },
   });
