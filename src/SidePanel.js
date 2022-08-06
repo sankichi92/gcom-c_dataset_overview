@@ -17,6 +17,16 @@ exports.build = function (
     style: { stretch: "horizontal" },
   });
 
+  var pointLabel = ui.Label({
+    value: "Point: [Click a point on the map]",
+    style: { margin: "4px 8px 0" },
+  });
+
+  var valueLabel = ui.Label({
+    value: "Value: [Click a point on the map]",
+    style: { margin: "4px 8px 8px" },
+  });
+
   var panel = ui.Panel({
     widgets: [
       ui.Label({
@@ -74,6 +84,12 @@ exports.build = function (
         style: headerStyle,
       }),
       dateSlider,
+      ui.Label({
+        value: "Clicked Point Value",
+        style: headerStyle,
+      }),
+      pointLabel,
+      valueLabel,
     ],
     style: { width: "400px" },
   });
@@ -81,6 +97,18 @@ exports.build = function (
   // DateSlider のコンストラクタに value を渡してもなぜかその通りの値にならないので、
   // setValue を呼んでコールバックを発火させることで無理やり LST レイヤーの状態と一致させている
   dateSlider.setValue(ee.Date(Date.now()).advance(-14, "days"));
+
+  panel.setPointCoords = function (coords) {
+    pointLabel.setValue("Point: (" + coords.lon + ", " + coords.lat + ")");
+  };
+
+  panel.setPointValue = function (value) {
+    if (isNaN(value)) {
+      valueLabel.setValue("Value: " + value);
+    } else {
+      valueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
+    }
+  };
 
   return panel;
 };

@@ -32,3 +32,22 @@ var panel = SidePanel.build(
 
 ui.root.add(panel);
 ui.root.add(map);
+
+map.onClick(function (coords) {
+  panel.setPointCoords(coords);
+
+  var point = ee.Geometry.Point(coords.lon, coords.lat);
+  map.layers().set(1, ui.Map.Layer({ eeObject: point, name: "Point" }));
+
+  layerBuilder
+    .getImage()
+    .sample({ region: point, scale: 30 })
+    .first()
+    .getInfo(function (feature) {
+      if (feature) {
+        panel.setPointValue(feature.properties.LST_AVE);
+      } else { // 海などデータがない場合
+        panel.setPointValue("N/A");
+      }
+    });
+});

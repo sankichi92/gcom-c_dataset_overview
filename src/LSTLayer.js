@@ -5,24 +5,29 @@ var Builder = function (lstCollection, startDate, endDate, satelliteDirection) {
   this.satelliteDirection = satelliteDirection;
 };
 
-Builder.prototype.build = function () {
-  print(this);
-
-  var image = this.lstCollection
+Builder.prototype.getImage = function () {
+  return this.lstCollection
     .filterDate(this.startDate, this.endDate)
     .filter(ee.Filter.eq("SATELLITE_DIRECTION", this.satelliteDirection))
     .select("LST_AVE")
     .mean()
     .multiply(0.02) // 傾斜係数
     .add(-273.15); // ケルビン→摂氏
+};
 
-  var visParams = {
-    min: -20,
-    max: 60,
-    palette: ["blue", "limegreen", "yellow", "darkorange", "red"],
-  };
+Builder.prototype.build = function () {
+  print(this);
 
-  return ui.Map.Layer(image, visParams, "LST");
+  return ui.Map.Layer({
+    eeObject: this.getImage(),
+    visParams: {
+      min: -20,
+      max: 60,
+      palette: ["blue", "limegreen", "yellow", "darkorange", "red"],
+    },
+    name: "LST",
+    opacity: 0.8,
+  });
 };
 
 exports.Builder = Builder;
