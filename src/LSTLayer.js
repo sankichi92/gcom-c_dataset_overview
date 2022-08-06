@@ -5,7 +5,7 @@ var Builder = function (lstCollection, startDate, endDate, satelliteDirection) {
   this.satelliteDirection = satelliteDirection;
 };
 
-Builder.prototype.getImage = function () {
+Builder.prototype.buildImage = function () {
   return this.lstCollection
     .filterDate(this.startDate, this.endDate)
     .filter(ee.Filter.eq("SATELLITE_DIRECTION", this.satelliteDirection))
@@ -15,11 +15,11 @@ Builder.prototype.getImage = function () {
     .add(-273.15); // ケルビン→摂氏
 };
 
-Builder.prototype.build = function () {
+Builder.prototype.buildLayer = function () {
   print(this);
 
   return ui.Map.Layer({
-    eeObject: this.getImage(),
+    eeObject: this.buildImage(),
     visParams: {
       min: -20,
       max: 60,

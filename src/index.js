@@ -20,13 +20,13 @@ var panel = SidePanel.build(
   layerBuilder.satelliteDirection,
   function (satelliteDirection) {
     layerBuilder.satelliteDirection = satelliteDirection;
-    map.layers().set(0, layerBuilder.build());
+    map.layers().set(0, layerBuilder.buildLayer());
   },
   lstCollection.first().date(),
   function (dateRange) {
     layerBuilder.startDate = dateRange.start();
     layerBuilder.endDate = dateRange.end();
-    map.layers().set(0, layerBuilder.build());
+    map.layers().set(0, layerBuilder.buildLayer());
   }
 );
 
@@ -40,7 +40,7 @@ map.onClick(function (coords) {
   map.layers().set(1, ui.Map.Layer({ eeObject: point, name: "Point" }));
 
   layerBuilder
-    .getImage()
+    .buildImage()
     .sample({ region: point, scale: 30 })
     .first()
     .getInfo(function (feature) {
