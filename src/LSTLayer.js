@@ -12,7 +12,7 @@ Builder.prototype.buildImage = function () {
     .select("LST_AVE")
     .mean()
     .multiply(0.02) // 傾斜係数
-    .add(-273.15); // ケルビン→摂氏
+    .subtract(273.15); // ケルビン→摂氏
 };
 
 Builder.prototype.buildLayer = function () {

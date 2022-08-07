@@ -8,6 +8,7 @@ var map = ui.Map({
 });
 
 var lstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/LAND/LST/V3");
+print(lstCollection);
 
 var layerBuilder = new LSTLayer.Builder(
   lstCollection,
@@ -46,8 +47,28 @@ map.onClick(function (coords) {
     .getInfo(function (feature) {
       if (feature) {
         panel.setPointValue(feature.properties.LST_AVE);
-      } else { // 海などデータがない場合
+      } else {
+        // 海などデータがない場合
         panel.setPointValue("N/A");
       }
     });
+
+  var ic = lstCollection
+    .filter(
+      ee.Filter.eq("SATELLITE_DIRECTION", layerBuilder.satelliteDirection)
+    )
+    .select("LST_AVE")
+    .map(function (image) {
+      return image
+        .multiply(0.02) // 傾斜係数
+        .subtract(273.15) // ケルビン→摂氏
+        .copyProperties(image, ["system:time_start"]);
+    });
+
+  var chart = ui.Chart.image.series({
+    imageCollection: ic,
+    region: point,
+    reducer: ee.Reducer.first(),
+  });
+  print(chart);
 });
