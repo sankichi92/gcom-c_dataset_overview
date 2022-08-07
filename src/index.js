@@ -10,3 +10,4 @@ ui.root.add(app.map);
 app.updateLSTLayer();
 app.updatePointLayer();
 app.updatePointValueLabel();
+app.updatePointChart();

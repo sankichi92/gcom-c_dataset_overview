@@ -5,6 +5,7 @@ var POINT_LAYER_INDEX = 1;
 
 var POINT_COORDS_WIDGET_INDEX = 10;
 var POINT_VALUE_WIDGET_INDEX = 11;
+var POINT_CHART_WIDGET_INDEX = 13;
 
 var App = function () {
   this.satelliteDirection = ui.url.get("sd", "D");
@@ -24,6 +25,7 @@ var App = function () {
       self.setCoords(coords);
       self.updatePointLayer();
       self.updatePointValueLabel();
+      self.updatePointChart();
     },
     style: { cursor: "crosshair" },
   });
@@ -88,6 +90,7 @@ var App = function () {
           self.setSatelliteDirection(satelliteDirection);
           self.updateLSTLayer();
           self.updatePointValueLabel();
+          self.updatePointChart();
         },
         style: { stretch: "horizontal" },
       }),
@@ -121,6 +124,13 @@ var App = function () {
       ui.Label({
         value: "Value: ",
         style: { margin: "4px 8px 8px" },
+      }),
+      ui.Label({
+        value: "Clicked Point Chart",
+        style: headerStyle,
+      }),
+      ui.Label({
+        value: "[Click a point on the map]",
       }),
       ui.Label({
         value: "Dataset",
@@ -218,6 +228,16 @@ App.prototype.updatePointValueLabel = function () {
         pointValueLabel.setValue("Value: N/A");
       }
     });
+};
+
+App.prototype.updatePointChart = function () {
+  var chart = ui.Chart.image.series({
+    imageCollection: LSTData.celsiusImageCollection(this.satelliteDirection),
+    region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
+    reducer: ee.Reducer.first(),
+  });
+
+  this.panel.widgets().set(POINT_CHART_WIDGET_INDEX, chart);
 };
 
 exports.build = function () {
