@@ -59,14 +59,14 @@ var App = function () {
       ui.Label({
         value:
           "Visualize LST (Land Surface Temperature) observed by GCOM-C (Global Change Observation Mission - Climate)." +
-          "The map shows the daytime or nighttime mean value over the specified period." +
-          "When you click the map, you can see the value and a time series chart on the point.",
+          "The map shows daytime or nighttime mean values over the specified period." +
+          "When you click the map, you can see the value and a time series chart at the point.",
       }),
       ui.Label({
         value:
           "気候変動観測衛星「しきさい（GCOM-C）」で観測した地表面温度（Land Surface Temperature）について、" +
           "指定した期間における日中または夜間の平均値を可視化する。" +
-          "また、地図上でクリックすると、その地点の値や時系列のグラフが表示される。",
+          "また、地図上をクリックすると、その地点の値や時系列のグラフが表示される。",
       }),
       ui.Label({
         value: "Satellite Direction",
