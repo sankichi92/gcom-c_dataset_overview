@@ -7,16 +7,21 @@ exports.minDate = function () {
   return lstCollection.first().date();
 };
 
-exports.celsiusImageCollection = function (satelliteDirection) {
-  return lstCollection
-    .filter(ee.Filter.eq("SATELLITE_DIRECTION", satelliteDirection))
-    .select("LST_AVE")
-    .map(function (image) {
-      return image
+exports.bandSplittedCollection = function () {
+  return lstCollection.select("LST_AVE").map(function (image) {
+    var celsius = ee.Image(
+      image
         .multiply(SLOPE_COEFFICIENT)
         .subtract(KELVIN_TO_CELSIUS)
-        .copyProperties(image, ["system:time_start"]); // For time series chart
-    });
+        .copyProperties(image, ["system:time_start"]) // For time series chart
+    );
+
+    return ee.Algorithms.If(
+      ee.String(image.get("SATELLITE_DIRECTION")).equals("D"),
+      celsius.rename("Daytime"),
+      celsius.rename("Nighttime")
+    );
+  });
 };
 
 exports.periodMeanImage = function (satelliteDirection, startDate, endDate) {

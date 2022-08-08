@@ -5,7 +5,7 @@ var POINT_LAYER_INDEX = 1;
 
 var POINT_COORDS_WIDGET_INDEX = 10;
 var POINT_VALUE_WIDGET_INDEX = 11;
-var POINT_CHART_WIDGET_INDEX = 13;
+var POINT_CHART_WIDGET_INDEX = 12;
 
 var App = function () {
   this.satelliteDirection = ui.url.get("sd", "D");
@@ -90,7 +90,6 @@ var App = function () {
           self.setSatelliteDirection(satelliteDirection);
           self.updateLSTLayer();
           self.updatePointValueLabel();
-          self.updatePointChart();
         },
         style: { stretch: "horizontal" },
       }),
@@ -114,20 +113,16 @@ var App = function () {
       }),
       dateSlider,
       ui.Label({
-        value: "Clicked Point Value",
+        value: "Clicked Point Information",
         style: headerStyle,
       }),
       ui.Label({
-        value: "Point: ",
+        value: "Coordinates: ",
         style: { margin: "4px 8px 0" },
       }),
       ui.Label({
         value: "Value: ",
         style: { margin: "4px 8px 8px" },
-      }),
-      ui.Label({
-        value: "Clicked Point Chart",
-        style: headerStyle,
       }),
       ui.Label({
         value: "[Click a point on the map]",
@@ -206,7 +201,7 @@ App.prototype.updatePointLayer = function () {
 
   var pointCoordsLabel = this.panel.widgets().get(POINT_COORDS_WIDGET_INDEX);
   pointCoordsLabel.setValue(
-    "Point: (" + this.coords.lon + ", " + this.coords.lat + ")"
+    "Coordinates: (" + this.coords.lon + ", " + this.coords.lat + ")"
   );
 };
 
@@ -231,11 +226,19 @@ App.prototype.updatePointValueLabel = function () {
 };
 
 App.prototype.updatePointChart = function () {
-  var chart = ui.Chart.image.series({
-    imageCollection: LSTData.celsiusImageCollection(this.satelliteDirection),
-    region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
-    reducer: ee.Reducer.first(),
-  });
+  var chart = ui.Chart.image
+    .series({
+      imageCollection: LSTData.bandSplittedCollection(),
+      region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
+      reducer: ee.Reducer.first(),
+    })
+    .setOptions({
+      title:
+        "LST time series at (" + this.coords.lon + ", " + this.coords.lat + ")",
+      hAxis: { title: null },
+      vAxis: { title: "LST (℃)" },
+      interpolateNulls: true,
+    });
 
   this.panel.widgets().set(POINT_CHART_WIDGET_INDEX, chart);
 };
