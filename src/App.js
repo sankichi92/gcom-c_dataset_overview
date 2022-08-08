@@ -3,14 +3,28 @@ var LSTData = require("users/sankichi92/gcom-c_lst_overview:src/LSTData.js");
 var LST_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
 
+var DATE_SLIDER_WIDGET_INDEX = 8;
 var POINT_COORDS_WIDGET_INDEX = 10;
 var POINT_VALUE_WIDGET_INDEX = 11;
 var POINT_CHART_WIDGET_INDEX = 12;
 
+var DAY_MILLISECONDS = 86400000;
+
 var App = function () {
   this.satelliteDirection = ui.url.get("sd", "D");
-  this.startDate = ui.url.get("start", "2022-07-01");
-  this.endDate = ui.url.get("end", "2022-07-08");
+
+  var now = Date.now();
+  this.startDate = ui.url.get(
+    "start",
+    new Date(now - 7 * DAY_MILLISECONDS).toISOString().substring(0, 10)
+  );
+  this.endDate = ui.url.get(
+    "end",
+    new Date(now).toISOString().substring(0, 10)
+  );
+  var period =
+    (new Date(this.endDate) - new Date(this.startDate)) / DAY_MILLISECONDS;
+
   this.coords = {
     // Tokyo
     lon: ui.url.get("lon", 139.839478),
@@ -35,28 +49,6 @@ var App = function () {
     fontWeight: "bold",
     margin: "8px 8px 0",
   };
-
-  var dateSlider = ui.DateSlider({
-    start: LSTData.minDate(),
-    value: [this.startDate, this.endDate],
-    period: 7,
-    onChange: function (dateRange) {
-      dateRange
-        .start()
-        .format("YYYY-MM-dd")
-        .evaluate(function (startDate) {
-          dateRange
-            .end()
-            .format("YYYY-MM-dd")
-            .evaluate(function (endDate) {
-              self.setDates(startDate, endDate);
-            });
-        });
-      self.updateLSTLayer();
-      self.updatePointValueLabel();
-    },
-    style: { stretch: "horizontal" },
-  });
 
   this.panel = ui.Panel({
     widgets: [
@@ -100,7 +92,7 @@ var App = function () {
       ui.Slider({
         min: 1,
         max: 60,
-        value: dateSlider.getPeriod(),
+        value: period,
         step: 1,
         onChange: function (value) {
           dateSlider.setPeriod(value);
@@ -111,7 +103,27 @@ var App = function () {
         value: "Date",
         style: headerStyle,
       }),
-      dateSlider,
+      ui.DateSlider({
+        start: LSTData.minDate(),
+        value: this.startDate,
+        period: period,
+        onChange: function (dateRange) {
+          dateRange
+            .start()
+            .format("YYYY-MM-dd")
+            .evaluate(function (startDate) {
+              dateRange
+                .end()
+                .format("YYYY-MM-dd")
+                .evaluate(function (endDate) {
+                  self.setDates(startDate, endDate);
+                });
+            });
+          self.updateLSTLayer();
+          self.updatePointValueLabel();
+        },
+        style: { stretch: "horizontal" },
+      }),
       ui.Label({
         value: "Clicked Point Information",
         style: headerStyle,
@@ -161,6 +173,17 @@ App.prototype.setDates = function (startDate, endDate) {
   this.endDate = endDate;
   ui.url.set("start", startDate);
   ui.url.set("end", endDate);
+};
+
+App.prototype.setDatesByDateSlider = function () {
+  var dateSliderValue = this.panel
+    .widgets()
+    .get(DATE_SLIDER_WIDGET_INDEX)
+    .getValue();
+  this.setDates(
+    new Date(dateSliderValue[0]).toISOString().substring(0, 10),
+    new Date(dateSliderValue[1]).toISOString().substring(0, 10)
+  );
 };
 
 App.prototype.setCoords = function (coords) {
