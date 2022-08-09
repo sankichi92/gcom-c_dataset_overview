@@ -7,7 +7,7 @@ var app = App.build();
 ui.root.add(app.panel);
 ui.root.add(app.map);
 
-app.setDatesByDateSlider();
+app.setDatesByDateSliderValue();
 app.updateLSTLayer();
 app.updatePointLayer();
 app.updatePointValueLabel();

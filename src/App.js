@@ -95,7 +95,7 @@ var App = function () {
         value: period,
         step: 1,
         onChange: function (value) {
-          dateSlider.setPeriod(value);
+          self.setDateSliderPeriod(value);
         },
         style: { stretch: "horizontal" },
       }),
@@ -107,18 +107,8 @@ var App = function () {
         start: LSTData.minDate(),
         value: this.startDate,
         period: period,
-        onChange: function (dateRange) {
-          dateRange
-            .start()
-            .format("YYYY-MM-dd")
-            .evaluate(function (startDate) {
-              dateRange
-                .end()
-                .format("YYYY-MM-dd")
-                .evaluate(function (endDate) {
-                  self.setDates(startDate, endDate);
-                });
-            });
+        onChange: function () {
+          self.setDatesByDateSliderValue();
           self.updateLSTLayer();
           self.updatePointValueLabel();
         },
@@ -163,33 +153,31 @@ var App = function () {
   });
 };
 
+App.prototype.setCoords = function (coords) {
+  this.coords = coords;
+  ui.url.set("lon", coords.lon);
+  ui.url.set("lat", coords.lat);
+};
+
 App.prototype.setSatelliteDirection = function (satelliteDirection) {
   this.satelliteDirection = satelliteDirection;
   ui.url.set("sd", satelliteDirection);
 };
 
-App.prototype.setDates = function (startDate, endDate) {
-  this.startDate = startDate;
-  this.endDate = endDate;
-  ui.url.set("start", startDate);
-  ui.url.set("end", endDate);
-};
-
-App.prototype.setDatesByDateSlider = function () {
+App.prototype.setDatesByDateSliderValue = function () {
   var dateSliderValue = this.panel
     .widgets()
     .get(DATE_SLIDER_WIDGET_INDEX)
     .getValue();
-  this.setDates(
-    new Date(dateSliderValue[0]).toISOString().substring(0, 10),
-    new Date(dateSliderValue[1]).toISOString().substring(0, 10)
-  );
+
+  this.startDate = new Date(dateSliderValue[0]).toISOString().substring(0, 10);
+  this.endDate = new Date(dateSliderValue[1]).toISOString().substring(0, 10);
+  ui.url.set("start", this.startDate);
+  ui.url.set("end", this.endDate);
 };
 
-App.prototype.setCoords = function (coords) {
-  this.coords = coords;
-  ui.url.set("lon", coords.lon);
-  ui.url.set("lat", coords.lat);
+App.prototype.setDateSliderPeriod = function (period) {
+  this.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX).setPeriod(period);
 };
 
 App.prototype.updateLSTLayer = function () {
