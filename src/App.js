@@ -3,6 +3,7 @@ var LSTData = require("users/sankichi92/gcom-c_lst_overview:src/LSTData.js");
 var LST_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
 
+var SATELLITE_DIRECTION_SELECT_WIDGET_INDEX = 4;
 var DATE_SLIDER_WIDGET_INDEX = 8;
 var POINT_COORDS_WIDGET_INDEX = 10;
 var POINT_VALUE_WIDGET_INDEX = 11;
@@ -11,20 +12,6 @@ var POINT_CHART_WIDGET_INDEX = 12;
 var DAY_MILLISECONDS = 86400000;
 
 var App = function () {
-  this.satelliteDirection = ui.url.get("sd", "D");
-
-  var now = Date.now();
-  this.startDate = ui.url.get(
-    "start",
-    new Date(now - 7 * DAY_MILLISECONDS).toISOString().substring(0, 10)
-  );
-  this.endDate = ui.url.get(
-    "end",
-    new Date(now).toISOString().substring(0, 10)
-  );
-  var period =
-    (new Date(this.endDate) - new Date(this.startDate)) / DAY_MILLISECONDS;
-
   this.coords = {
     // Tokyo
     lon: ui.url.get("lon", 139.839478),
@@ -36,13 +23,17 @@ var App = function () {
   this.map = ui.Map({
     center: this.coords,
     onClick: function (coords) {
-      self.setCoords(coords);
+      self.coords = coords;
       self.updatePointLayer();
       self.updatePointValueLabel();
       self.updatePointChart();
+      ui.url.set("lon", coords.lon);
+      ui.url.set("lat", coords.lat);
     },
     style: { cursor: "crosshair" },
   });
+
+  var period = ui.url.get("period", 7);
 
   var headerStyle = {
     fontSize: "1.17em",
@@ -77,11 +68,11 @@ var App = function () {
           { label: "Ascending (Nighttime)", value: "A" },
           { label: "Descending (Daytime)", value: "D" },
         ],
-        value: this.satelliteDirection,
+        value: ui.url.get("sd", "D"),
         onChange: function (satelliteDirection) {
-          self.setSatelliteDirection(satelliteDirection);
           self.updateLSTLayer();
           self.updatePointValueLabel();
+          ui.url.set("sd", satelliteDirection);
         },
         style: { stretch: "horizontal" },
       }),
@@ -95,7 +86,9 @@ var App = function () {
         value: period,
         step: 1,
         onChange: function (value) {
-          self.setDateSliderPeriod(value);
+          var dateSlider = self.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX);
+          dateSlider.setPeriod(value);
+          ui.url.set("period", value);
         },
         style: { stretch: "horizontal" },
       }),
@@ -105,12 +98,22 @@ var App = function () {
       }),
       ui.DateSlider({
         start: LSTData.minDate(),
-        value: this.startDate,
+        value: ui.url.get(
+          "start",
+          new Date(Date.now() - 7 * DAY_MILLISECONDS)
+            .toISOString()
+            .substring(0, 10)
+        ),
         period: period,
-        onChange: function () {
-          self.setDatesByDateSliderValue();
+        onChange: function (dateRange) {
           self.updateLSTLayer();
           self.updatePointValueLabel();
+          dateRange
+            .start()
+            .format("YYYY-MM-dd")
+            .evaluate(function (startDate) {
+              ui.url.set("start", startDate);
+            });
         },
         style: { stretch: "horizontal" },
       }),
@@ -153,39 +156,25 @@ var App = function () {
   });
 };
 
-App.prototype.setCoords = function (coords) {
-  this.coords = coords;
-  ui.url.set("lon", coords.lon);
-  ui.url.set("lat", coords.lat);
-};
-
-App.prototype.setSatelliteDirection = function (satelliteDirection) {
-  this.satelliteDirection = satelliteDirection;
-  ui.url.set("sd", satelliteDirection);
-};
-
-App.prototype.setDatesByDateSliderValue = function () {
-  var dateSliderValue = this.panel
+App.prototype.getSatelliteDirection = function () {
+  return this.panel
     .widgets()
-    .get(DATE_SLIDER_WIDGET_INDEX)
+    .get(SATELLITE_DIRECTION_SELECT_WIDGET_INDEX)
     .getValue();
-
-  this.startDate = new Date(dateSliderValue[0]).toISOString().substring(0, 10);
-  this.endDate = new Date(dateSliderValue[1]).toISOString().substring(0, 10);
-  ui.url.set("start", this.startDate);
-  ui.url.set("end", this.endDate);
 };
 
-App.prototype.setDateSliderPeriod = function (period) {
-  this.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX).setPeriod(period);
+App.prototype.getStartAndEndDates = function () {
+  return this.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX).getValue();
 };
 
 App.prototype.updateLSTLayer = function () {
+  var dates = this.getStartAndEndDates();
+
   var layer = ui.Map.Layer({
     eeObject: LSTData.periodMeanImage(
-      this.satelliteDirection,
-      this.startDate,
-      this.endDate
+      this.getSatelliteDirection(),
+      dates[0],
+      dates[1]
     ),
     visParams: {
       min: -20,
@@ -217,9 +206,10 @@ App.prototype.updatePointLayer = function () {
 };
 
 App.prototype.updatePointValueLabel = function () {
+  var dates = this.getStartAndEndDates();
   var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
 
-  LSTData.periodMeanImage(this.satelliteDirection, this.startDate, this.endDate)
+  LSTData.periodMeanImage(this.getSatelliteDirection(), dates[0], dates[1])
     .sample({
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
       scale: 30,
