@@ -6,10 +6,11 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
+    "eslint": "^8.21.0",
     "prettier": "^2.7.1"
   },
   "scripts": {
     "format": "prettier src --write",
-    "lint": "prettier src --check"
+    "lint": "prettier src --check && eslint src"
   }
 }
