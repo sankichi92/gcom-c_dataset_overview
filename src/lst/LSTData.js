@@ -29,7 +29,11 @@ exports.daytimeOrNighttimePeriodMeanPointValue = function (
   endDate,
   coords
 ) {
-  return daytimeOrNighttimePeriodMeanImage(satelliteDirection, startDate, endDate)
+  return daytimeOrNighttimePeriodMeanImage(
+    satelliteDirection,
+    startDate,
+    endDate
+  )
     .sample({
       region: ee.Geometry.Point({ coords: [coords.lon, coords.lat] }),
       scale: 30,

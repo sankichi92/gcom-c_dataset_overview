@@ -19,9 +19,7 @@ function celsiusCollection() {
 exports.celsiusCollection = celsiusCollection;
 
 function periodMeanImage(startDate, endDate) {
-  return celsiusCollection()
-    .filterDate(startDate, endDate)
-    .mean();
+  return celsiusCollection().filterDate(startDate, endDate).mean();
 }
 
 exports.periodMeanImage = periodMeanImage;

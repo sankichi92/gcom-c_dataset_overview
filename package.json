@@ -1,0 +1,15 @@
+{
+  "name": "gcom-c_dataset_overview",
+  "description": "Google Earth Engine Apps using GCOM-C dataset",
+  "repository": "https://github.com/sankichi92/gcom-c_dataset_overview",
+  "author": "Takahiro Miyoshi <takahiro-miyoshi@sankichi.net>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "prettier": "^2.7.1"
+  },
+  "scripts": {
+    "format": "prettier src --write",
+    "lint": "prettier src --check"
+  }
+}
