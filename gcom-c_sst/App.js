@@ -177,8 +177,8 @@ App.prototype.updateSSTLayer = function () {
       dates[1]
     ),
     visParams: {
-      min: 0,
-      max: 30,
+      min: -5,
+      max: 35,
       palette: ["blue", "limegreen", "yellow", "darkorange", "red"],
     },
     name: "SST",
