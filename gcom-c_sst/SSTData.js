@@ -1,10 +1,10 @@
-var lstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/LAND/LST/V3");
+var sstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/OCEAN/SST/V3");
 
-var SLOPE_COEFFICIENT = 0.02;
-var KELVIN_TO_CELSIUS = 273.15;
+var SLOPE_COEFFICIENT = 0.0012;
+var OFFSET = 10;
 
 exports.minDate = function () {
-  return lstCollection.first().date();
+  return sstCollection.first().date();
 };
 
 function daytimeOrNighttimePeriodMeanImage(
@@ -12,13 +12,13 @@ function daytimeOrNighttimePeriodMeanImage(
   startDate,
   endDate
 ) {
-  return lstCollection
+  return sstCollection
     .filter(ee.Filter.eq("SATELLITE_DIRECTION", satelliteDirection))
     .filterDate(startDate, endDate)
-    .select("LST_AVE")
+    .select("SST_AVE")
     .mean()
     .multiply(SLOPE_COEFFICIENT)
-    .subtract(KELVIN_TO_CELSIUS);
+    .subtract(OFFSET);
 }
 
 exports.daytimeOrNighttimePeriodMeanImage = daytimeOrNighttimePeriodMeanImage;
@@ -35,15 +35,15 @@ exports.daytimeOrNighttimePeriodMeanPointValue = function (
       scale: 30,
     })
     .first()
-    .get("LST_AVE");
+    .get("SST_AVE");
 };
 
 exports.daytimeAndNighttimeBandsCollection = function () {
-  return lstCollection.select("LST_AVE").map(function (image) {
+  return sstCollection.select("SST_AVE").map(function (image) {
     var celsius = ee.Image(
       image
         .multiply(SLOPE_COEFFICIENT)
-        .subtract(KELVIN_TO_CELSIUS)
+        .subtract(OFFSET)
         .copyProperties(image, ["system:time_start"]) // For time series chart
     );
 
