@@ -192,17 +192,17 @@ App.prototype.updatePointValueLabel = function () {
 
 App.prototype.updatePointChart = function () {
   var chart = ui.Chart.image
-    .series({
+    .doySeriesByYear({
       imageCollection: SSTData.celsiusCollection(),
+      bandName: "SST_AVE",
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
-      reducer: ee.Reducer.first(),
+      regionReducer: ee.Reducer.first(),
     })
-    .setSeriesNames(["SST (℃)"])
     .setOptions({
       title:
         "SST time series at (" + this.coords.lon + ", " + this.coords.lat + ")",
-      hAxis: { title: null },
-      vAxis: { title: null },
+      hAxis: { title: "Day of year" },
+      vAxis: { title: "SST (℃)" },
       interpolateNulls: true,
     });
 
