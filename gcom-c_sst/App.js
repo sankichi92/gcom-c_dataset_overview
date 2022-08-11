@@ -3,11 +3,10 @@ var SSTData = require("users/sankichi92/gcom-c_lst_overview:gcom-c_sst/SSTData.j
 var SST_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
 
-var SATELLITE_DIRECTION_SELECT_WIDGET_INDEX = 4;
-var DATE_SLIDER_WIDGET_INDEX = 8;
-var POINT_COORDS_WIDGET_INDEX = 10;
-var POINT_VALUE_WIDGET_INDEX = 11;
-var POINT_CHART_WIDGET_INDEX = 12;
+var DATE_SLIDER_WIDGET_INDEX = 6;
+var POINT_COORDS_WIDGET_INDEX = 8;
+var POINT_VALUE_WIDGET_INDEX = 9;
+var POINT_CHART_WIDGET_INDEX = 10;
 
 var DAY_MILLISECONDS = 86400000;
 
@@ -33,7 +32,7 @@ var App = function () {
     style: { cursor: "crosshair" },
   });
 
-  var period = ui.url.get("period", 7);
+  var period = ui.url.get("period", 28);
 
   var headerStyle = {
     fontSize: "1.17em",
@@ -50,31 +49,13 @@ var App = function () {
       ui.Label({
         value:
           "Visualize SST (Sea Surface Temperature) observed by GCOM-C (Global Change Observation Mission - Climate)." +
-          "The map shows daytime or nighttime mean values over the specified period." +
+          "The map shows mean values over the specified period." +
           "When you click the map, you can see the value and a time series chart at the point.",
       }),
       ui.Label({
         value:
-          "気候変動観測衛星「しきさい（GCOM-C）」で観測した海水面温度（Sea Surface Temperature）について、" +
-          "指定した期間における日中または夜間の平均値を可視化する。" +
+          "気候変動観測衛星「しきさい（GCOM-C）」で観測した海水面温度（Sea Surface Temperature）について、指定した期間の平均値を可視化する。" +
           "また、地図上をクリックすると、その地点の値や時系列のグラフが表示される。",
-      }),
-      ui.Label({
-        value: "Satellite Direction",
-        style: headerStyle,
-      }),
-      ui.Select({
-        items: [
-          { label: "Ascending (Nighttime)", value: "A" },
-          { label: "Descending (Daytime)", value: "D" },
-        ],
-        value: ui.url.get("sd", "D"),
-        onChange: function (satelliteDirection) {
-          self.updateSSTLayer();
-          self.updatePointValueLabel();
-          ui.url.set("sd", satelliteDirection);
-        },
-        style: { stretch: "horizontal" },
       }),
       ui.Label({
         value: "Period (days)",
@@ -82,7 +63,7 @@ var App = function () {
       }),
       ui.Slider({
         min: 1,
-        max: 60,
+        max: 90,
         value: period,
         step: 1,
         onChange: function (value) {
@@ -156,13 +137,6 @@ var App = function () {
   });
 };
 
-App.prototype.getSatelliteDirection = function () {
-  return this.panel
-    .widgets()
-    .get(SATELLITE_DIRECTION_SELECT_WIDGET_INDEX)
-    .getValue();
-};
-
 App.prototype.getStartAndEndDates = function () {
   return this.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX).getValue();
 };
@@ -171,11 +145,7 @@ App.prototype.updateSSTLayer = function () {
   var dates = this.getStartAndEndDates();
 
   var layer = ui.Map.Layer({
-    eeObject: SSTData.daytimeOrNighttimePeriodMeanImage(
-      this.getSatelliteDirection(),
-      dates[0],
-      dates[1]
-    ),
+    eeObject: SSTData.periodMeanImage(dates[0], dates[1]),
     visParams: {
       min: -5,
       max: 35,
@@ -208,33 +178,31 @@ App.prototype.updatePointValueLabel = function () {
   var dates = this.getStartAndEndDates();
   var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
 
-  SSTData.daytimeOrNighttimePeriodMeanPointValue(
-    this.getSatelliteDirection(),
-    dates[0],
-    dates[1],
-    this.coords
-  ).evaluate(function (value) {
-    if (value) {
-      pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
-    } else {
-      // 陸などデータがない場合
-      pointValueLabel.setValue("Value: N/A");
+  SSTData.periodMeanPointValue(dates[0], dates[1], this.coords).evaluate(
+    function (value) {
+      if (value) {
+        pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
+      } else {
+        // 陸などデータがない場合
+        pointValueLabel.setValue("Value: N/A");
+      }
     }
-  });
+  );
 };
 
 App.prototype.updatePointChart = function () {
   var chart = ui.Chart.image
     .series({
-      imageCollection: SSTData.daytimeAndNighttimeBandsCollection(),
+      imageCollection: SSTData.celsiusCollection(),
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
       reducer: ee.Reducer.first(),
     })
+    .setSeriesNames(["SST (℃)"])
     .setOptions({
       title:
         "SST time series at (" + this.coords.lon + ", " + this.coords.lat + ")",
       hAxis: { title: null },
-      vAxis: { title: "SST (℃)" },
+      vAxis: { title: null },
       interpolateNulls: true,
     });
 
