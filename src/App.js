@@ -171,7 +171,7 @@ App.prototype.updateLSTLayer = function () {
   var dates = this.getStartAndEndDates();
 
   var layer = ui.Map.Layer({
-    eeObject: LSTData.periodMeanImage(
+    eeObject: LSTData.daytimeOrNighttimePeriodMeanImage(
       this.getSatelliteDirection(),
       dates[0],
       dates[1]
@@ -209,27 +209,25 @@ App.prototype.updatePointValueLabel = function () {
   var dates = this.getStartAndEndDates();
   var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
 
-  LSTData.periodMeanImage(this.getSatelliteDirection(), dates[0], dates[1])
-    .sample({
-      region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
-      scale: 30,
-    })
-    .first()
-    .get("LST_AVE")
-    .evaluate(function (value) {
-      if (value) {
-        pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
-      } else {
-        // 海などデータがない場合
-        pointValueLabel.setValue("Value: N/A");
-      }
-    });
+  LSTData.daytimeOrNighttimePeriodMeanPointValue(
+    this.getSatelliteDirection(),
+    dates[0],
+    dates[1],
+    this.coords
+  ).evaluate(function (value) {
+    if (value) {
+      pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
+    } else {
+      // 海などデータがない場合
+      pointValueLabel.setValue("Value: N/A");
+    }
+  });
 };
 
 App.prototype.updatePointChart = function () {
   var chart = ui.Chart.image
     .series({
-      imageCollection: LSTData.bandSplittedCollection(),
+      imageCollection: LSTData.daytimeAndNighttimeBandsCollection(),
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
       reducer: ee.Reducer.first(),
     })

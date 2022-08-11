@@ -7,7 +7,38 @@ exports.minDate = function () {
   return lstCollection.first().date();
 };
 
-exports.bandSplittedCollection = function () {
+function daytimeOrNighttimePeriodMeanImage(
+  satelliteDirection,
+  startDate,
+  endDate
+) {
+  return lstCollection
+    .filter(ee.Filter.eq("SATELLITE_DIRECTION", satelliteDirection))
+    .filterDate(startDate, endDate)
+    .select("LST_AVE")
+    .mean()
+    .multiply(SLOPE_COEFFICIENT)
+    .subtract(KELVIN_TO_CELSIUS);
+}
+
+exports.daytimeOrNighttimePeriodMeanImage = daytimeOrNighttimePeriodMeanImage;
+
+exports.daytimeOrNighttimePeriodMeanPointValue = function (
+  satelliteDirection,
+  startDate,
+  endDate,
+  coords
+) {
+  return daytimeOrNighttimePeriodMeanImage(satelliteDirection, startDate, endDate)
+    .sample({
+      region: ee.Geometry.Point({ coords: [coords.lon, coords.lat] }),
+      scale: 30,
+    })
+    .first()
+    .get("LST_AVE");
+};
+
+exports.daytimeAndNighttimeBandsCollection = function () {
   return lstCollection.select("LST_AVE").map(function (image) {
     var celsius = ee.Image(
       image
@@ -22,14 +53,4 @@ exports.bandSplittedCollection = function () {
       celsius.rename("Nighttime")
     );
   });
-};
-
-exports.periodMeanImage = function (satelliteDirection, startDate, endDate) {
-  return lstCollection
-    .filter(ee.Filter.eq("SATELLITE_DIRECTION", satelliteDirection))
-    .filterDate(startDate, endDate)
-    .select("LST_AVE")
-    .mean()
-    .multiply(SLOPE_COEFFICIENT)
-    .subtract(KELVIN_TO_CELSIUS);
 };
