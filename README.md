@@ -1,6 +1,14 @@
-# GCOM-C LST Overview
+# GCOM-C Dataset Overview
 
-[GCOM-C/SGLI L3 Land Surface Temperature](https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_LAND_LST_V3) viewer on [Google Earth Engine](https://earthengine.google.com/)
+[Google Earth Engine](https://earthengine.google.com/) Apps using [GCOM-C Dataset](https://developers.google.com/earth-engine/datasets/tags/gcom-c).
 
-- GEE App: https://sankichi92.users.earthengine.app/view/gcom-c-lst-overview
-- GEE Repo: https://code.earthengine.google.com/?accept_repo=users/sankichi92/gcom-c_lst_overview
+If you have signed up for Google Earth Engine, you can add this repo to your Code Editor using: https://code.earthengine.google.com/?accept_repo=users/sankichi92/gcom-c_dataset_overview.
+
+## Earth Engine Apps
+
+- [Land Surface Temperature](https://sankichi92.users.earthengine.app/view/gcom-c-lst-overview)
+- [Sea Surface Temperature](https://sankichi92.users.earthengine.app/view/gcom-c-sst-overview)
+
+## License
+
+[MIT License](LICENSE)

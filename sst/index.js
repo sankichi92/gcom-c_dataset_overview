@@ -1,4 +1,4 @@
-var App = require("users/sankichi92/gcom-c_lst_overview:gcom-c_sst/App.js");
+var App = require("users/sankichi92/gcom-c_dataset_overview:sst/App.js");
 
 ui.root.clear();
 
