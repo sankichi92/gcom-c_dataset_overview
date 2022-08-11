@@ -1,13 +1,12 @@
-var LSTData = require("users/sankichi92/gcom-c_dataset_overview:lst/LSTData.js");
+var SSTData = require("users/sankichi92/gcom-c_dataset_overview:src/sst/SSTData.js");
 
-var LST_LAYER_INDEX = 0;
+var SST_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
 
-var SATELLITE_DIRECTION_SELECT_WIDGET_INDEX = 4;
-var DATE_SLIDER_WIDGET_INDEX = 8;
-var POINT_COORDS_WIDGET_INDEX = 10;
-var POINT_VALUE_WIDGET_INDEX = 11;
-var POINT_CHART_WIDGET_INDEX = 12;
+var DATE_SLIDER_WIDGET_INDEX = 6;
+var POINT_COORDS_WIDGET_INDEX = 8;
+var POINT_VALUE_WIDGET_INDEX = 9;
+var POINT_CHART_WIDGET_INDEX = 10;
 
 var DAY_MILLISECONDS = 86400000;
 
@@ -33,7 +32,7 @@ var App = function () {
     style: { cursor: "crosshair" },
   });
 
-  var period = ui.url.get("period", 7);
+  var period = ui.url.get("period", 28);
 
   var headerStyle = {
     fontSize: "1.17em",
@@ -44,37 +43,19 @@ var App = function () {
   this.panel = ui.Panel({
     widgets: [
       ui.Label({
-        value: "GCOM-C LST Overview",
+        value: "GCOM-C SST Overview",
         style: { fontSize: "2em", fontWeight: "bold" },
       }),
       ui.Label({
         value:
-          "Visualize LST (Land Surface Temperature) observed by GCOM-C (Global Change Observation Mission - Climate)." +
-          "The map shows daytime or nighttime mean values over the specified period." +
+          "Visualize SST (Sea Surface Temperature) observed by GCOM-C (Global Change Observation Mission - Climate)." +
+          "The map shows mean values over the specified period." +
           "When you click the map, you can see the value and a time series chart at the point.",
       }),
       ui.Label({
         value:
-          "気候変動観測衛星「しきさい（GCOM-C）」で観測した地表面温度（Land Surface Temperature）について、" +
-          "指定した期間における日中または夜間の平均値を可視化する。" +
+          "気候変動観測衛星「しきさい（GCOM-C）」で観測した海水面温度（Sea Surface Temperature）について、指定した期間の平均値を可視化する。" +
           "また、地図上をクリックすると、その地点の値や時系列のグラフが表示される。",
-      }),
-      ui.Label({
-        value: "Satellite Direction",
-        style: headerStyle,
-      }),
-      ui.Select({
-        items: [
-          { label: "Ascending (Nighttime)", value: "A" },
-          { label: "Descending (Daytime)", value: "D" },
-        ],
-        value: ui.url.get("sd", "D"),
-        onChange: function (satelliteDirection) {
-          self.updateLSTLayer();
-          self.updatePointValueLabel();
-          ui.url.set("sd", satelliteDirection);
-        },
-        style: { stretch: "horizontal" },
       }),
       ui.Label({
         value: "Period (days)",
@@ -82,7 +63,7 @@ var App = function () {
       }),
       ui.Slider({
         min: 1,
-        max: 60,
+        max: 90,
         value: period,
         step: 1,
         onChange: function (value) {
@@ -97,7 +78,7 @@ var App = function () {
         style: headerStyle,
       }),
       ui.DateSlider({
-        start: LSTData.minDate(),
+        start: SSTData.minDate(),
         value: ui.url.get(
           "start",
           new Date(Date.now() - 7 * DAY_MILLISECONDS)
@@ -106,7 +87,7 @@ var App = function () {
         ),
         period: period,
         onChange: function (dateRange) {
-          self.updateLSTLayer();
+          self.updateSSTLayer();
           self.updatePointValueLabel();
           dateRange
             .start()
@@ -137,10 +118,10 @@ var App = function () {
         style: headerStyle,
       }),
       ui.Label({
-        value: "GCOM-C/SGLI L3 Land Surface Temperature",
+        value: "GCOM-C/SGLI L3 Sea Surface Temperature (V3)",
         style: { margin: "4px 8px 8px" },
         targetUrl:
-          "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_LAND_LST_V3",
+          "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_OCEAN_SST_V3",
       }),
       ui.Label({
         value: "Source Code",
@@ -156,36 +137,24 @@ var App = function () {
   });
 };
 
-App.prototype.getSatelliteDirection = function () {
-  return this.panel
-    .widgets()
-    .get(SATELLITE_DIRECTION_SELECT_WIDGET_INDEX)
-    .getValue();
-};
-
 App.prototype.getStartAndEndDates = function () {
   return this.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX).getValue();
 };
 
-App.prototype.updateLSTLayer = function () {
+App.prototype.updateSSTLayer = function () {
   var dates = this.getStartAndEndDates();
 
   var layer = ui.Map.Layer({
-    eeObject: LSTData.daytimeOrNighttimePeriodMeanImage(
-      this.getSatelliteDirection(),
-      dates[0],
-      dates[1]
-    ),
+    eeObject: SSTData.periodMeanImage(dates[0], dates[1]),
     visParams: {
-      min: -20,
-      max: 60,
+      min: -5,
+      max: 35,
       palette: ["blue", "limegreen", "yellow", "darkorange", "red"],
     },
-    name: "LST",
-    opacity: 0.8,
+    name: "SST",
   });
 
-  this.map.layers().set(LST_LAYER_INDEX, layer);
+  this.map.layers().set(SST_LAYER_INDEX, layer);
 };
 
 App.prototype.updatePointLayer = function () {
@@ -209,33 +178,31 @@ App.prototype.updatePointValueLabel = function () {
   var dates = this.getStartAndEndDates();
   var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
 
-  LSTData.daytimeOrNighttimePeriodMeanPointValue(
-    this.getSatelliteDirection(),
-    dates[0],
-    dates[1],
-    this.coords
-  ).evaluate(function (value) {
-    if (value) {
-      pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
-    } else {
-      // 海などデータがない場合
-      pointValueLabel.setValue("Value: N/A");
+  SSTData.periodMeanPointValue(dates[0], dates[1], this.coords).evaluate(
+    function (value) {
+      if (value) {
+        pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
+      } else {
+        // 陸などデータがない場合
+        pointValueLabel.setValue("Value: N/A");
+      }
     }
-  });
+  );
 };
 
 App.prototype.updatePointChart = function () {
   var chart = ui.Chart.image
-    .series({
-      imageCollection: LSTData.daytimeAndNighttimeBandsCollection(),
+    .doySeriesByYear({
+      imageCollection: SSTData.celsiusCollection(),
+      bandName: "SST_AVE",
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
-      reducer: ee.Reducer.first(),
+      regionReducer: ee.Reducer.first(),
     })
     .setOptions({
       title:
-        "LST time series at (" + this.coords.lon + ", " + this.coords.lat + ")",
-      hAxis: { title: null },
-      vAxis: { title: "LST (℃)" },
+        "SST time series at (" + this.coords.lon + ", " + this.coords.lat + ")",
+      hAxis: { title: "Day of year" },
+      vAxis: { title: "SST (℃)" },
       interpolateNulls: true,
     });
 
