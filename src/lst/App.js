@@ -1,5 +1,6 @@
-var LSTData = require("users/sankichi92/gcom-c_dataset_overview:src/lst/LSTData.js");
 var palettes = require("users/gena/packages:palettes");
+var Legend = require("users/sankichi92/gcom-c_dataset_overview:lib/Legend.js");
+var LSTData = require("users/sankichi92/gcom-c_dataset_overview:src/lst/LSTData.js");
 
 var LST_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
@@ -12,6 +13,12 @@ var POINT_CHART_WIDGET_INDEX = 12;
 
 var DAY_MILLISECONDS = 86400000;
 
+var lstVisParams = {
+  min: -20,
+  max: 60,
+  palette: palettes.crameri.batlow[50],
+};
+
 var App = function () {
   this.coords = {
     // Tokyo
@@ -21,18 +28,20 @@ var App = function () {
 
   var self = this;
 
-  this.map = ui.Map({
-    center: this.coords,
-    onClick: function (coords) {
-      self.coords = coords;
-      self.updatePointLayer();
-      self.updatePointValueLabel();
-      self.updatePointChart();
-      ui.url.set("lon", coords.lon);
-      ui.url.set("lat", coords.lat);
-    },
-    style: { cursor: "crosshair" },
-  });
+  this.map = ui
+    .Map({
+      center: this.coords,
+      onClick: function (coords) {
+        self.coords = coords;
+        self.updatePointLayer();
+        self.updatePointValueLabel();
+        self.updatePointChart();
+        ui.url.set("lon", coords.lon);
+        ui.url.set("lat", coords.lat);
+      },
+      style: { cursor: "crosshair" },
+    })
+    .add(Legend.createPanel(lstVisParams, { position: "bottom-right" }));
 
   var period = ui.url.get("period", 7);
 
@@ -177,11 +186,7 @@ App.prototype.updateLSTLayer = function () {
       dates[0],
       dates[1]
     ),
-    visParams: {
-      min: -20,
-      max: 60,
-      palette: palettes.crameri.batlow[50],
-    },
+    visParams: lstVisParams,
     name: "LST",
     opacity: 0.8,
   });
