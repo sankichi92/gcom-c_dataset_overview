@@ -1,11 +1,14 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var lstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/LAND/LST/V3");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
 
 var SLOPE_COEFFICIENT = 0.02;
 var KELVIN_TO_CELSIUS = 273.15;
 
-exports.minDate = function () {
+function minDate() {
   return lstCollection.first().date();
-};
+}
 
 function daytimeOrNighttimePeriodMeanImage(
   satelliteDirection,
@@ -21,9 +24,7 @@ function daytimeOrNighttimePeriodMeanImage(
     .subtract(KELVIN_TO_CELSIUS);
 }
 
-exports.daytimeOrNighttimePeriodMeanImage = daytimeOrNighttimePeriodMeanImage;
-
-exports.daytimeOrNighttimePeriodMeanPointValue = function (
+function daytimeOrNighttimePeriodMeanPointValue(
   satelliteDirection,
   startDate,
   endDate,
@@ -40,9 +41,9 @@ exports.daytimeOrNighttimePeriodMeanPointValue = function (
     })
     .first()
     .get("LST_AVE");
-};
+}
 
-exports.daytimeAndNighttimeBandsCollection = function () {
+function daytimeAndNighttimeBandsCollection() {
   return lstCollection.select("LST_AVE").map(function (image) {
     var celsius = ee.Image(
       image
@@ -57,4 +58,10 @@ exports.daytimeAndNighttimeBandsCollection = function () {
       celsius.rename("Nighttime")
     );
   });
-};
+}
+
+exports.minDate = minDate;
+exports.daytimeOrNighttimePeriodMeanImage = daytimeOrNighttimePeriodMeanImage;
+exports.daytimeOrNighttimePeriodMeanPointValue =
+  daytimeOrNighttimePeriodMeanPointValue;
+exports.daytimeAndNighttimeBandsCollection = daytimeAndNighttimeBandsCollection;

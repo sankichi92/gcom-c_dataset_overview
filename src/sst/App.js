@@ -1,6 +1,6 @@
 var palettes = require("users/gena/packages:palettes");
-var Legend = require("users/sankichi92/gcom-c_dataset_overview:lib/Legend.js");
-var SSTData = require("users/sankichi92/gcom-c_dataset_overview:src/sst/SSTData.js");
+var legend = require("users/sankichi92/gcom-c_dataset_overview:lib/legend.js");
+var sstData = require("users/sankichi92/gcom-c_dataset_overview:src/sst/sstData.js");
 
 var SST_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
@@ -40,7 +40,7 @@ var App = function () {
       },
       style: { cursor: "crosshair" },
     })
-    .add(Legend.createPanel(sstVisParams, { position: "bottom-right" }));
+    .add(legend.palettePanel(sstVisParams, { position: "bottom-right" }));
 
   var period = ui.url.get("period", 28);
 
@@ -88,7 +88,7 @@ var App = function () {
         style: headerStyle,
       }),
       ui.DateSlider({
-        start: SSTData.minDate(),
+        start: sstData.minDate(),
         value: ui.url.get(
           "start",
           new Date(Date.now() - 7 * DAY_MILLISECONDS)
@@ -155,7 +155,7 @@ App.prototype.updateSSTLayer = function () {
   var dates = this.getStartAndEndDates();
 
   var layer = ui.Map.Layer({
-    eeObject: SSTData.periodMeanImage(dates[0], dates[1]),
+    eeObject: sstData.periodMeanImage(dates[0], dates[1]),
     visParams: sstVisParams,
     name: "SST",
   });
@@ -184,22 +184,22 @@ App.prototype.updatePointValueLabel = function () {
   var dates = this.getStartAndEndDates();
   var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
 
-  SSTData.periodMeanPointValue(dates[0], dates[1], this.coords).evaluate(
-    function (value) {
+  sstData
+    .periodMeanPointValue(dates[0], dates[1], this.coords)
+    .evaluate(function (value) {
       if (value) {
         pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
       } else {
         // 陸などデータがない場合
         pointValueLabel.setValue("Value: N/A");
       }
-    }
-  );
+    });
 };
 
 App.prototype.updatePointChart = function () {
   var chart = ui.Chart.image
     .doySeriesByYear({
-      imageCollection: SSTData.celsiusCollection(),
+      imageCollection: sstData.celsiusCollection(),
       bandName: "SST_AVE",
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
       regionReducer: ee.Reducer.first(),
@@ -215,6 +215,4 @@ App.prototype.updatePointChart = function () {
   this.panel.widgets().set(POINT_CHART_WIDGET_INDEX, chart);
 };
 
-exports.build = function () {
-  return new App();
-};
+exports = App;

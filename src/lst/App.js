@@ -1,6 +1,6 @@
 var palettes = require("users/gena/packages:palettes");
-var Legend = require("users/sankichi92/gcom-c_dataset_overview:lib/Legend.js");
-var LSTData = require("users/sankichi92/gcom-c_dataset_overview:src/lst/LSTData.js");
+var legend = require("users/sankichi92/gcom-c_dataset_overview:lib/legend.js");
+var lstData = require("users/sankichi92/gcom-c_dataset_overview:src/lst/lstData.js");
 
 var LST_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
@@ -41,7 +41,7 @@ var App = function () {
       },
       style: { cursor: "crosshair" },
     })
-    .add(Legend.createPanel(lstVisParams, { position: "bottom-right" }));
+    .add(legend.palettePanel(lstVisParams, { position: "bottom-right" }));
 
   var period = ui.url.get("period", 7);
 
@@ -107,7 +107,7 @@ var App = function () {
         style: headerStyle,
       }),
       ui.DateSlider({
-        start: LSTData.minDate(),
+        start: lstData.minDate(),
         value: ui.url.get(
           "start",
           new Date(Date.now() - 7 * DAY_MILLISECONDS)
@@ -181,7 +181,7 @@ App.prototype.updateLSTLayer = function () {
   var dates = this.getStartAndEndDates();
 
   var layer = ui.Map.Layer({
-    eeObject: LSTData.daytimeOrNighttimePeriodMeanImage(
+    eeObject: lstData.daytimeOrNighttimePeriodMeanImage(
       this.getSatelliteDirection(),
       dates[0],
       dates[1]
@@ -215,25 +215,27 @@ App.prototype.updatePointValueLabel = function () {
   var dates = this.getStartAndEndDates();
   var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
 
-  LSTData.daytimeOrNighttimePeriodMeanPointValue(
-    this.getSatelliteDirection(),
-    dates[0],
-    dates[1],
-    this.coords
-  ).evaluate(function (value) {
-    if (value) {
-      pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
-    } else {
-      // 海などデータがない場合
-      pointValueLabel.setValue("Value: N/A");
-    }
-  });
+  lstData
+    .daytimeOrNighttimePeriodMeanPointValue(
+      this.getSatelliteDirection(),
+      dates[0],
+      dates[1],
+      this.coords
+    )
+    .evaluate(function (value) {
+      if (value) {
+        pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
+      } else {
+        // 海などデータがない場合
+        pointValueLabel.setValue("Value: N/A");
+      }
+    });
 };
 
 App.prototype.updatePointChart = function () {
   var chart = ui.Chart.image
     .series({
-      imageCollection: LSTData.daytimeAndNighttimeBandsCollection(),
+      imageCollection: lstData.daytimeAndNighttimeBandsCollection(),
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
       reducer: ee.Reducer.first(),
     })
@@ -248,6 +250,4 @@ App.prototype.updatePointChart = function () {
   this.panel.widgets().set(POINT_CHART_WIDGET_INDEX, chart);
 };
 
-exports.build = function () {
-  return new App();
-};
+exports = App;

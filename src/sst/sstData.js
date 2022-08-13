@@ -1,11 +1,12 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var sstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/OCEAN/SST/V3");
-
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
 var SLOPE_COEFFICIENT = 0.0012;
 var OFFSET = 10;
 
-exports.minDate = function () {
+function minDate() {
   return sstCollection.first().date();
-};
+}
 
 function celsiusCollection() {
   return sstCollection.select("SST_AVE").map(function (image) {
@@ -16,15 +17,11 @@ function celsiusCollection() {
   });
 }
 
-exports.celsiusCollection = celsiusCollection;
-
 function periodMeanImage(startDate, endDate) {
   return celsiusCollection().filterDate(startDate, endDate).mean();
 }
 
-exports.periodMeanImage = periodMeanImage;
-
-exports.periodMeanPointValue = function (startDate, endDate, coords) {
+function periodMeanPointValue(startDate, endDate, coords) {
   return periodMeanImage(startDate, endDate)
     .sample({
       region: ee.Geometry.Point({ coords: [coords.lon, coords.lat] }),
@@ -32,4 +29,9 @@ exports.periodMeanPointValue = function (startDate, endDate, coords) {
     })
     .first()
     .get("SST_AVE");
-};
+}
+
+exports.minDate = minDate;
+exports.celsiusCollection = celsiusCollection;
+exports.periodMeanImage = periodMeanImage;
+exports.periodMeanPointValue = periodMeanPointValue;

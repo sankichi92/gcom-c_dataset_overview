@@ -1,6 +1,6 @@
 {
   "name": "gcom-c_dataset_overview",
-  "description": "Google Earth Engine Apps using GCOM-C dataset",
+  "description": "Google Earth Engine Apps using GCOM-C datasets",
   "repository": "https://github.com/sankichi92/gcom-c_dataset_overview",
   "author": "Takahiro Miyoshi <takahiro-miyoshi@sankichi.net>",
   "license": "MIT",
@@ -10,7 +10,7 @@
     "prettier": "^2.7.1"
   },
   "scripts": {
-    "format": "prettier src --write",
-    "lint": "prettier src --check && eslint src"
+    "format": "prettier src lib --write",
+    "lint": "prettier src lib --check && eslint src lib"
   }
 }
