@@ -1,4 +1,5 @@
 var LSTData = require("users/sankichi92/gcom-c_dataset_overview:src/lst/LSTData.js");
+var palettes = require("users/gena/packages:palettes");
 
 var LST_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
@@ -179,7 +180,7 @@ App.prototype.updateLSTLayer = function () {
     visParams: {
       min: -20,
       max: 60,
-      palette: ["blue", "limegreen", "yellow", "darkorange", "red"],
+      palette: palettes.crameri.batlow[50],
     },
     name: "LST",
     opacity: 0.8,
