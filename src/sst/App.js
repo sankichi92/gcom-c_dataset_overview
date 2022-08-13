@@ -59,8 +59,8 @@ var App = function () {
       ui.Label({
         value:
           "Visualize SST (Sea Surface Temperature) observed by GCOM-C (Global Change Observation Mission - Climate)." +
-          "The map shows mean values over the specified period." +
-          "When you click the map, you can see the value and a time series chart at the point.",
+          " The map shows mean values over the specified period." +
+          " When you click the map, you can see the value and a time series chart at the point.",
       }),
       ui.Label({
         value:
