@@ -2,7 +2,6 @@
 var lstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/LAND/LST/V3");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
-
 var SLOPE_COEFFICIENT = 0.02;
 var KELVIN_TO_CELSIUS = 273.15;
 

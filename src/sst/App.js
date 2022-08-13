@@ -40,7 +40,7 @@ var App = function () {
       },
       style: { cursor: "crosshair" },
     })
-    .setOptions('HYBRID')
+    .setOptions("HYBRID")
     .add(legend.palettePanel(sstVisParams, { position: "bottom-right" }));
 
   var period = ui.url.get("period", 28);

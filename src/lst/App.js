@@ -41,7 +41,7 @@ var App = function () {
       },
       style: { cursor: "crosshair" },
     })
-    .setOptions('TERRAIN')
+    .setOptions("TERRAIN")
     .add(legend.palettePanel(lstVisParams, { position: "bottom-right" }));
 
   var period = ui.url.get("period", 7);
