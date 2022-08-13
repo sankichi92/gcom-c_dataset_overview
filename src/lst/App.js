@@ -189,7 +189,6 @@ App.prototype.updateLSTLayer = function () {
     ),
     visParams: lstVisParams,
     name: "LST",
-    opacity: 0.8,
   });
 
   this.map.layers().set(LST_LAYER_INDEX, layer);
