@@ -140,8 +140,8 @@ var App = function () {
           [self.getLeftMap(), self.getRightMap()].forEach(function (map) {
             var dateSlider = map.widgets().get(MAP_DATE_SLIDER_WIDGET_INDEX);
             dateSlider.setPeriod(value);
-            ui.url.set("period", value);
           });
+          ui.url.set("period", value);
         },
         style: { stretch: "horizontal" },
       }),
