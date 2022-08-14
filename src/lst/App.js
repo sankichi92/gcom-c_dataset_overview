@@ -149,9 +149,15 @@ var App = function () {
       }),
       ui.Label({
         value: "GCOM-C/SGLI L3 Land Surface Temperature",
-        style: { margin: "4px 8px 8px" },
+        style: { margin: "4px 8px 0" },
         targetUrl:
           "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_LAND_LST_V3",
+      }),
+      ui.Label({
+        value: "Official detail",
+        style: { margin: "4px 8px 8px" },
+        targetUrl:
+          "https://suzaku.eorc.jaxa.jp/GCOM_C/data/update/Algorithm_LST_en.html",
       }),
       ui.Label({
         value: "Source Code",

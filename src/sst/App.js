@@ -130,9 +130,15 @@ var App = function () {
       }),
       ui.Label({
         value: "GCOM-C/SGLI L3 Sea Surface Temperature (V3)",
-        style: { margin: "4px 8px 8px" },
+        style: { margin: "4px 8px 0" },
         targetUrl:
           "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_OCEAN_SST_V3",
+      }),
+      ui.Label({
+        value: "Official detail",
+        style: { margin: "4px 8px 8px" },
+        targetUrl:
+          "https://suzaku.eorc.jaxa.jp/GCOM_C/data/update/Algorithm_SST_en.html",
       }),
       ui.Label({
         value: "Source Code",
