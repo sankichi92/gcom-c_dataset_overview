@@ -21,9 +21,9 @@ var lstVisParams = {
 
 var App = function () {
   this.coords = {
-    // Tokyo
-    lon: ui.url.get("lon", 139.839478),
-    lat: ui.url.get("lat", 35.652832),
+    // https://www.geocoding.jp/?q=東京駅
+    lon: ui.url.get("lon", 139.767125),
+    lat: ui.url.get("lat", 35.681236),
   };
 
   var self = this;
