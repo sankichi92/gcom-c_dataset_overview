@@ -9,9 +9,7 @@ function minDate() {
 
 function correctedCollection() {
   return laiCollection.select("LAI_AVE").map(function (image) {
-    return image
-      .multiply(SLOPE)
-      .copyProperties(image, ["system:time_start"]);
+    return image.multiply(SLOPE).copyProperties(image, ["system:time_start"]);
   });
 }
 

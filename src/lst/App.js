@@ -93,7 +93,7 @@ var App = function () {
       }),
       ui.Slider({
         min: 1,
-        max: 60,
+        max: 90,
         value: period,
         step: 1,
         onChange: function (value) {
@@ -110,7 +110,7 @@ var App = function () {
       ui.DateSlider({
         start: lstData.minDate(),
         value: ui.url.get(
-          "start",
+          "date",
           new Date(Date.now() - 7 * DAY_MILLISECONDS)
             .toISOString()
             .substring(0, 10)
@@ -123,7 +123,7 @@ var App = function () {
             .start()
             .format("YYYY-MM-dd")
             .evaluate(function (startDate) {
-              ui.url.set("start", startDate);
+              ui.url.set("date", startDate);
             });
         },
         style: { stretch: "horizontal" },

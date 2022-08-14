@@ -4,11 +4,9 @@ var laiData = require("users/sankichi92/gcom-c_dataset_overview:src/lai/laiData.
 
 var LAI_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
+var MAP_DATE_SLIDER_WIDGET_INDEX = 0;
 
-var DATE_SLIDER_WIDGET_INDEX = 6;
-var POINT_COORDS_WIDGET_INDEX = 8;
-var POINT_VALUE_WIDGET_INDEX = 9;
-var POINT_CHART_WIDGET_INDEX = 10;
+var SIDE_PANEL_CHART_WIDGET_INDEX = 6;
 
 var DAY_MILLISECONDS = 86400000;
 
@@ -27,23 +25,83 @@ var App = function () {
 
   var self = this;
 
-  this.map = ui
-    .Map({
-      center: this.coords,
-      onClick: function (coords) {
-        self.coords = coords;
-        self.updatePointLayer();
-        self.updatePointValueLabel();
-        self.updatePointChart();
-        ui.url.set("lon", coords.lon);
-        ui.url.set("lat", coords.lat);
-      },
-      style: { cursor: "crosshair" },
-    })
-    .setOptions("TERRAIN")
-    .add(legend.palettePanel(laiVisParams, { position: "bottom-right" }));
+  var onMapClick = function (coords) {
+    self.coords = coords;
+    self.updatePointLayer();
+    self.updatePointChart();
+    ui.url.set("lon", coords.lon);
+    ui.url.set("lat", coords.lat);
+  };
 
-  var period = ui.url.get("period", 7);
+  var period = ui.url.get("period", 14);
+
+  var linker = ui.Map.Linker([
+    ui
+      .Map({
+        center: this.coords,
+        onClick: onMapClick,
+        style: { cursor: "crosshair" },
+      })
+      .setOptions("TERRAIN")
+      .add(
+        ui.DateSlider({
+          start: laiData.minDate(),
+          value: ui.url.get(
+            "ldate",
+            new Date(Date.now() - (365 / 2 - period) * DAY_MILLISECONDS)
+              .toISOString()
+              .substring(0, 10)
+          ),
+          period: period,
+          onChange: function (dateRange) {
+            self.updateLAILayer(0);
+            dateRange
+              .start()
+              .format("YYYY-MM-dd")
+              .evaluate(function (startDate) {
+                ui.url.set("ldate", startDate);
+              });
+          },
+          style: { position: "bottom-left" },
+        })
+      )
+      .add(legend.palettePanel(laiVisParams, { position: "top-right" })),
+    ui
+      .Map({
+        onClick: onMapClick,
+        style: { cursor: "crosshair" },
+      })
+      .setOptions("TERRAIN")
+      .add(
+        ui.DateSlider({
+          start: laiData.minDate(),
+          value: ui.url.get(
+            "rdate",
+            new Date(Date.now() - period * DAY_MILLISECONDS)
+              .toISOString()
+              .substring(0, 10)
+          ),
+          period: period,
+          onChange: function (dateRange) {
+            self.updateLAILayer(1);
+            dateRange
+              .start()
+              .format("YYYY-MM-dd")
+              .evaluate(function (startDate) {
+                ui.url.set("rdate", startDate);
+              });
+          },
+          style: { position: "bottom-right" },
+        })
+      )
+      .add(legend.palettePanel(laiVisParams, { position: "top-right" })),
+  ]);
+
+  this.splitPanel = ui.SplitPanel({
+    firstPanel: linker.get(0),
+    secondPanel: linker.get(1),
+    wipe: true,
+  });
 
   var headerStyle = {
     fontSize: "1.17em",
@@ -51,7 +109,7 @@ var App = function () {
     margin: "8px 8px 0",
   };
 
-  this.panel = ui.Panel({
+  this.sidePanel = ui.Panel({
     widgets: [
       ui.Label({
         value: "GCOM-C LAI Overview",
@@ -60,13 +118,14 @@ var App = function () {
       ui.Label({
         value:
           "Visualize LAI (Leaf Area Index) observed by GCOM-C (Global Change Observation Mission - Climate)." +
-          " The map shows mean values over the specified period." +
-          " When you click the map, you can see the value and a time series chart at the point.",
+          " The map shows mean values for different periods on the left and right to easily compare them." +
+          " When you click the map, you can see a time series chart at the point.",
       }),
       ui.Label({
         value:
-          "気候変動観測衛星「しきさい（GCOM-C）」で観測した葉面積指数（Leaf Area Index）について、指定した期間の平均値を可視化する。" +
-          "また、地図上をクリックすると、その地点の値や時系列のグラフが表示される。",
+          "気候変動観測衛星「しきさい（GCOM-C）」で観測した葉面積指数（Leaf Area Index）を可視化する。" +
+          "地図上の左右それぞれに異なる2つの期間の平均値が表示されており、比較することができる。" +
+          "また、地図上をクリックすると、その地点の時系列推移を示すグラフが表示される。",
       }),
       ui.Label({
         value: "Period (days)",
@@ -78,48 +137,17 @@ var App = function () {
         value: period,
         step: 1,
         onChange: function (value) {
-          var dateSlider = self.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX);
-          dateSlider.setPeriod(value);
-          ui.url.set("period", value);
+          [self.getLeftMap(), self.getRightMap()].forEach(function (map) {
+            var dateSlider = map.widgets().get(MAP_DATE_SLIDER_WIDGET_INDEX);
+            dateSlider.setPeriod(value);
+            ui.url.set("period", value);
+          });
         },
         style: { stretch: "horizontal" },
       }),
       ui.Label({
-        value: "Date",
+        value: "Clicked Point Chart",
         style: headerStyle,
-      }),
-      ui.DateSlider({
-        start: laiData.minDate(),
-        value: ui.url.get(
-          "start",
-          new Date(Date.now() - 7 * DAY_MILLISECONDS)
-            .toISOString()
-            .substring(0, 10)
-        ),
-        period: period,
-        onChange: function (dateRange) {
-          self.updateLAILayer();
-          self.updatePointValueLabel();
-          dateRange
-            .start()
-            .format("YYYY-MM-dd")
-            .evaluate(function (startDate) {
-              ui.url.set("start", startDate);
-            });
-        },
-        style: { stretch: "horizontal" },
-      }),
-      ui.Label({
-        value: "Clicked Point Information",
-        style: headerStyle,
-      }),
-      ui.Label({
-        value: "Coordinates: ",
-        style: { margin: "4px 8px 0" },
-      }),
-      ui.Label({
-        value: "Value: ",
-        style: { margin: "4px 8px 8px" },
       }),
       ui.Label({
         value: "[Click a point on the map]",
@@ -154,53 +182,41 @@ var App = function () {
   });
 };
 
-App.prototype.getStartAndEndDates = function () {
-  return this.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX).getValue();
+App.prototype.getLeftMap = function () {
+  return this.splitPanel.getFirstPanel();
 };
 
-App.prototype.updateLAILayer = function () {
-  var dates = this.getStartAndEndDates();
+App.prototype.getRightMap = function () {
+  return this.splitPanel.getSecondPanel();
+};
 
+App.prototype.updateLAILayer = function (splitPanelIndex) {
+  // var map = this.splitPanel.getPanel(splitPanelIndex); // Error: Cannot read properties of undefined (reading 'firstPanel')
+  var map = splitPanelIndex === 0 ? this.getLeftMap() : this.getRightMap();
+
+  var dates = map.widgets().get(MAP_DATE_SLIDER_WIDGET_INDEX).getValue();
   var layer = ui.Map.Layer({
     eeObject: laiData.periodMeanImage(dates[0], dates[1]),
     visParams: laiVisParams,
     name: "LAI",
   });
 
-  this.map.layers().set(LAI_LAYER_INDEX, layer);
+  map.layers().set(LAI_LAYER_INDEX, layer);
 };
 
 App.prototype.updatePointLayer = function () {
-  this.map.layers().set(
-    POINT_LAYER_INDEX,
-    ui.Map.Layer({
-      eeObject: ee.Geometry.Point({
-        coords: [this.coords.lon, this.coords.lat],
-      }),
-      name: "Point",
-    })
-  );
-
-  var pointCoordsLabel = this.panel.widgets().get(POINT_COORDS_WIDGET_INDEX);
-  pointCoordsLabel.setValue(
-    "Coordinates: (" + this.coords.lon + ", " + this.coords.lat + ")"
-  );
-};
-
-App.prototype.updatePointValueLabel = function () {
-  var dates = this.getStartAndEndDates();
-  var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
-
-  laiData
-    .periodMeanPointValue(dates[0], dates[1], this.coords)
-    .evaluate(function (value) {
-      if (value) {
-        pointValueLabel.setValue("Value: " + value.toFixed(2));
-      } else {
-        // 海などデータがない場合
-        pointValueLabel.setValue("Value: N/A");
-      }
-    });
+  var self = this;
+  [this.getLeftMap(), this.getRightMap()].forEach(function (map) {
+    map.layers().set(
+      POINT_LAYER_INDEX,
+      ui.Map.Layer({
+        eeObject: ee.Geometry.Point({
+          coords: [self.coords.lon, self.coords.lat],
+        }),
+        name: "Point",
+      })
+    );
+  });
 };
 
 App.prototype.updatePointChart = function () {
@@ -219,7 +235,7 @@ App.prototype.updatePointChart = function () {
       interpolateNulls: true,
     });
 
-  this.panel.widgets().set(POINT_CHART_WIDGET_INDEX, chart);
+  this.sidePanel.widgets().set(SIDE_PANEL_CHART_WIDGET_INDEX, chart);
 };
 
 exports = App;
