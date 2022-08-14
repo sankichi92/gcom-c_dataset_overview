@@ -1,8 +1,8 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var sstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/OCEAN/SST/V3");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
-var SLOPE_COEFFICIENT = 0.0012;
-var OFFSET = 10;
+var SLOPE = 0.0012;
+var OFFSET = -10;
 
 function minDate() {
   return sstCollection.first().date();
@@ -11,8 +11,8 @@ function minDate() {
 function celsiusCollection() {
   return sstCollection.select("SST_AVE").map(function (image) {
     return image
-      .multiply(SLOPE_COEFFICIENT)
-      .subtract(OFFSET)
+      .multiply(SLOPE)
+      .add(OFFSET)
       .copyProperties(image, ["system:time_start"]);
   });
 }

@@ -1,7 +1,7 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var laiCollection = ee.ImageCollection("JAXA/GCOM-C/L3/LAND/LAI/V3");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
-var SLOPE_COEFFICIENT = 0.001;
+var SLOPE = 0.001;
 
 function minDate() {
   return laiCollection.first().date();
@@ -10,7 +10,7 @@ function minDate() {
 function correctedCollection() {
   return laiCollection.select("LAI_AVE").map(function (image) {
     return image
-      .multiply(SLOPE_COEFFICIENT)
+      .multiply(SLOPE)
       .copyProperties(image, ["system:time_start"]);
   });
 }

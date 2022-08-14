@@ -1,8 +1,7 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var lstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/LAND/LST/V3");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
-
-var SLOPE_COEFFICIENT = 0.02;
+var SLOPE = 0.02;
 var KELVIN_TO_CELSIUS = 273.15;
 
 function minDate() {
@@ -19,7 +18,7 @@ function daytimeOrNighttimePeriodMeanImage(
     .filterDate(startDate, endDate)
     .select("LST_AVE")
     .mean()
-    .multiply(SLOPE_COEFFICIENT)
+    .multiply(SLOPE)
     .subtract(KELVIN_TO_CELSIUS);
 }
 
@@ -46,7 +45,7 @@ function daytimeAndNighttimeBandsCollection() {
   return lstCollection.select("LST_AVE").map(function (image) {
     var celsius = ee.Image(
       image
-        .multiply(SLOPE_COEFFICIENT)
+        .multiply(SLOPE)
         .subtract(KELVIN_TO_CELSIUS)
         .copyProperties(image, ["system:time_start"]) // For time series chart
     );
