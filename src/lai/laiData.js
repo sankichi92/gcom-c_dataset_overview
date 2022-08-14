@@ -1,24 +1,22 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
-var sstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/OCEAN/SST/V3");
+var laiCollection = ee.ImageCollection("JAXA/GCOM-C/L3/LAND/LAI/V3");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
-var SLOPE_COEFFICIENT = 0.0012;
-var OFFSET = 10;
+var SLOPE_COEFFICIENT = 0.001;
 
 function minDate() {
-  return sstCollection.first().date();
+  return laiCollection.first().date();
 }
 
-function celsiusCollection() {
-  return sstCollection.select("SST_AVE").map(function (image) {
+function correctedCollection() {
+  return laiCollection.select("LAI_AVE").map(function (image) {
     return image
       .multiply(SLOPE_COEFFICIENT)
-      .subtract(OFFSET)
       .copyProperties(image, ["system:time_start"]);
   });
 }
 
 function periodMeanImage(startDate, endDate) {
-  return celsiusCollection().filterDate(startDate, endDate).mean();
+  return correctedCollection().filterDate(startDate, endDate).mean();
 }
 
 function periodMeanPointValue(startDate, endDate, coords) {
@@ -28,10 +26,10 @@ function periodMeanPointValue(startDate, endDate, coords) {
       scale: 30,
     })
     .first()
-    .get("SST_AVE");
+    .get("LAI_AVE");
 }
 
 exports.minDate = minDate;
-exports.celsiusCollection = celsiusCollection;
+exports.correctedCollection = correctedCollection;
 exports.periodMeanImage = periodMeanImage;
 exports.periodMeanPointValue = periodMeanPointValue;

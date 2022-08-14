@@ -1,8 +1,8 @@
 var palettes = require("users/gena/packages:palettes");
 var legend = require("users/sankichi92/gcom-c_dataset_overview:lib/legend.js");
-var sstData = require("users/sankichi92/gcom-c_dataset_overview:src/sst/sstData.js");
+var laiData = require("users/sankichi92/gcom-c_dataset_overview:src/lai/laiData.js");
 
-var SST_LAYER_INDEX = 0;
+var LAI_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
 
 var DATE_SLIDER_WIDGET_INDEX = 6;
@@ -12,10 +12,10 @@ var POINT_CHART_WIDGET_INDEX = 10;
 
 var DAY_MILLISECONDS = 86400000;
 
-var sstVisParams = {
-  min: -5,
-  max: 35,
-  palette: palettes.crameri.batlow[50],
+var laiVisParams = {
+  min: 0,
+  max: 7,
+  palette: palettes.crameri.bamako[50].reverse(),
 };
 
 var App = function () {
@@ -40,10 +40,10 @@ var App = function () {
       },
       style: { cursor: "crosshair" },
     })
-    .setOptions("HYBRID")
-    .add(legend.palettePanel(sstVisParams, { position: "bottom-right" }));
+    .setOptions("TERRAIN")
+    .add(legend.palettePanel(laiVisParams, { position: "bottom-right" }));
 
-  var period = ui.url.get("period", 28);
+  var period = ui.url.get("period", 7);
 
   var headerStyle = {
     fontSize: "1.17em",
@@ -54,18 +54,18 @@ var App = function () {
   this.panel = ui.Panel({
     widgets: [
       ui.Label({
-        value: "GCOM-C SST Overview",
+        value: "GCOM-C LAI Overview",
         style: { fontSize: "2em", fontWeight: "bold" },
       }),
       ui.Label({
         value:
-          "Visualize SST (Sea Surface Temperature) observed by GCOM-C (Global Change Observation Mission - Climate)." +
+          "Visualize LAI (Leaf Area Index) observed by GCOM-C (Global Change Observation Mission - Climate)." +
           " The map shows mean values over the specified period." +
           " When you click the map, you can see the value and a time series chart at the point.",
       }),
       ui.Label({
         value:
-          "気候変動観測衛星「しきさい（GCOM-C）」で観測した海水面温度（Sea Surface Temperature）について、指定した期間の平均値を可視化する。" +
+          "気候変動観測衛星「しきさい（GCOM-C）」で観測した葉面積指数（Leaf Area Index）について、指定した期間の平均値を可視化する。" +
           "また、地図上をクリックすると、その地点の値や時系列のグラフが表示される。",
       }),
       ui.Label({
@@ -89,7 +89,7 @@ var App = function () {
         style: headerStyle,
       }),
       ui.DateSlider({
-        start: sstData.minDate(),
+        start: laiData.minDate(),
         value: ui.url.get(
           "start",
           new Date(Date.now() - 7 * DAY_MILLISECONDS)
@@ -98,7 +98,7 @@ var App = function () {
         ),
         period: period,
         onChange: function (dateRange) {
-          self.updateSSTLayer();
+          self.updateLAILayer();
           self.updatePointValueLabel();
           dateRange
             .start()
@@ -129,16 +129,16 @@ var App = function () {
         style: headerStyle,
       }),
       ui.Label({
-        value: "GCOM-C/SGLI L3 Sea Surface Temperature (V3)",
+        value: "GCOM-C/SGLI L3 Leaf Area Index (V3)",
         style: { margin: "4px 8px 0" },
         targetUrl:
-          "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_OCEAN_SST_V3",
+          "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_LAND_LAI_V3",
       }),
       ui.Label({
         value: "Official detail",
         style: { margin: "4px 8px 8px" },
         targetUrl:
-          "https://suzaku.eorc.jaxa.jp/GCOM_C/data/update/Algorithm_SST_en.html",
+          "https://suzaku.eorc.jaxa.jp/GCOM_C/data/update/Algorithm_LAI_en.html",
       }),
       ui.Label({
         value: "Source Code",
@@ -158,16 +158,16 @@ App.prototype.getStartAndEndDates = function () {
   return this.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX).getValue();
 };
 
-App.prototype.updateSSTLayer = function () {
+App.prototype.updateLAILayer = function () {
   var dates = this.getStartAndEndDates();
 
   var layer = ui.Map.Layer({
-    eeObject: sstData.periodMeanImage(dates[0], dates[1]),
-    visParams: sstVisParams,
-    name: "SST",
+    eeObject: laiData.periodMeanImage(dates[0], dates[1]),
+    visParams: laiVisParams,
+    name: "LAI",
   });
 
-  this.map.layers().set(SST_LAYER_INDEX, layer);
+  this.map.layers().set(LAI_LAYER_INDEX, layer);
 };
 
 App.prototype.updatePointLayer = function () {
@@ -191,13 +191,13 @@ App.prototype.updatePointValueLabel = function () {
   var dates = this.getStartAndEndDates();
   var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
 
-  sstData
+  laiData
     .periodMeanPointValue(dates[0], dates[1], this.coords)
     .evaluate(function (value) {
       if (value) {
-        pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
+        pointValueLabel.setValue("Value: " + value.toFixed(2));
       } else {
-        // 陸などデータがない場合
+        // 海などデータがない場合
         pointValueLabel.setValue("Value: N/A");
       }
     });
@@ -206,16 +206,16 @@ App.prototype.updatePointValueLabel = function () {
 App.prototype.updatePointChart = function () {
   var chart = ui.Chart.image
     .doySeriesByYear({
-      imageCollection: sstData.celsiusCollection(),
-      bandName: "SST_AVE",
+      imageCollection: laiData.correctedCollection(),
+      bandName: "LAI_AVE",
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
       regionReducer: ee.Reducer.first(),
     })
     .setOptions({
       title:
-        "SST time series at (" + this.coords.lon + ", " + this.coords.lat + ")",
+        "LAI time series at (" + this.coords.lon + ", " + this.coords.lat + ")",
       hAxis: { title: "Day of year" },
-      vAxis: { title: "SST (℃)" },
+      vAxis: { title: "LAI" },
       interpolateNulls: true,
     });
 
