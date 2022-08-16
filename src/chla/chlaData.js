@@ -1,19 +1,15 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
-var sstCollection = ee.ImageCollection("JAXA/GCOM-C/L3/OCEAN/SST/V3");
+var chlaCollection = ee.ImageCollection("JAXA/GCOM-C/L3/OCEAN/CHLA/V3");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
-var SLOPE = 0.0012;
-var OFFSET = -10;
+var SLOPE = 0.0016;
 
 function minDate() {
-  return sstCollection.first().date();
+  return chlaCollection.first().date();
 }
 
 function celsiusCollection() {
-  return sstCollection.select("SST_AVE").map(function (image) {
-    return image
-      .multiply(SLOPE)
-      .add(OFFSET)
-      .copyProperties(image, ["system:time_start"]);
+  return chlaCollection.select("CHLA_AVE").map(function (image) {
+    return image.multiply(SLOPE).copyProperties(image, ["system:time_start"]);
   });
 }
 
@@ -28,7 +24,7 @@ function periodMeanPointValue(startDate, endDate, coords) {
       scale: 30,
     })
     .first()
-    .get("SST_AVE");
+    .get("CHLA_AVE");
 }
 
 exports.minDate = minDate;

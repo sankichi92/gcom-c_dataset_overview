@@ -1,21 +1,19 @@
 var palettes = require("users/gena/packages:palettes");
 var legend = require("users/sankichi92/gcom-c_dataset_overview:lib/legend.js");
-var sstData = require("users/sankichi92/gcom-c_dataset_overview:src/sst/sstData.js");
+var chlaData = require("users/sankichi92/gcom-c_dataset_overview:src/chla/chlaData.js");
 
-var SST_LAYER_INDEX = 0;
+var CHLA_LAYER_INDEX = 0;
 var POINT_LAYER_INDEX = 1;
 
 var DATE_SLIDER_WIDGET_INDEX = 6;
-var POINT_COORDS_WIDGET_INDEX = 8;
-var POINT_VALUE_WIDGET_INDEX = 9;
-var POINT_CHART_WIDGET_INDEX = 10;
+var POINT_CHART_WIDGET_INDEX = 8;
 
 var DAY_MILLISECONDS = 86400000;
 
-var sstVisParams = {
-  min: -5,
-  max: 35,
-  palette: palettes.crameri.batlow[50],
+var chlaVisParams = {
+  min: -2,
+  max: 2,
+  palette: palettes.crameri.hawaii[50].reverse(),
 };
 
 var App = function () {
@@ -33,7 +31,6 @@ var App = function () {
       onClick: function (coords) {
         self.coords = coords;
         self.updatePointLayer();
-        self.updatePointValueLabel();
         self.updatePointChart();
         ui.url.set("lon", coords.lon);
         ui.url.set("lat", coords.lat);
@@ -41,7 +38,12 @@ var App = function () {
       style: { cursor: "crosshair" },
     })
     .setOptions("HYBRID")
-    .add(legend.palettePanel(sstVisParams, { position: "bottom-right" }));
+    .add(
+      legend.palettePanel(
+        { min: "10^-2", max: "10^2", palette: chlaVisParams.palette },
+        { position: "bottom-right" }
+      )
+    );
 
   var period = ui.url.get("period", 28);
 
@@ -54,19 +56,19 @@ var App = function () {
   this.panel = ui.Panel({
     widgets: [
       ui.Label({
-        value: "GCOM-C SST Overview",
+        value: "GCOM-C CHLA Overview",
         style: { fontSize: "2em", fontWeight: "bold" },
       }),
       ui.Label({
         value:
-          "Visualize SST (Sea Surface Temperature) observed by GCOM-C (Global Change Observation Mission - Climate)." +
+          "Visualize CHLA (Chlorophyll-a Concentration) observed by GCOM-C (Global Change Observation Mission - Climate)." +
           " The map shows mean values over the specified period." +
-          " When you click the map, you can see the value and a time series chart at the point.",
+          " When you click the map, you can see  a time series chart at the point.",
       }),
       ui.Label({
         value:
-          "気候変動観測衛星「しきさい（GCOM-C）」で観測した海水面温度（Sea Surface Temperature）について、指定した期間の平均値を可視化する。" +
-          "また、地図上をクリックすると、その地点の値や時系列のグラフが表示される。",
+          "気候変動観測衛星「しきさい（GCOM-C）」で観測したクロロフィルa 濃度について、指定した期間の平均値を可視化する。" +
+          "また、地図上をクリックすると、その地点の時系列推移を示すグラフが表示される。",
       }),
       ui.Label({
         value: "Period (days)",
@@ -89,7 +91,7 @@ var App = function () {
         style: headerStyle,
       }),
       ui.DateSlider({
-        start: sstData.minDate(),
+        start: chlaData.minDate(),
         value: ui.url.get(
           "date",
           new Date(Date.now() - period * DAY_MILLISECONDS)
@@ -98,8 +100,7 @@ var App = function () {
         ),
         period: period,
         onChange: function (dateRange) {
-          self.updateSSTLayer();
-          self.updatePointValueLabel();
+          self.updateCHLALayer();
           dateRange
             .start()
             .format("YYYY-MM-dd")
@@ -110,16 +111,8 @@ var App = function () {
         style: { stretch: "horizontal" },
       }),
       ui.Label({
-        value: "Clicked Point Information",
+        value: "Clicked Point Chart",
         style: headerStyle,
-      }),
-      ui.Label({
-        value: "Coordinates: ",
-        style: { margin: "4px 8px 0" },
-      }),
-      ui.Label({
-        value: "Value: ",
-        style: { margin: "4px 8px 8px" },
       }),
       ui.Label({
         value: "[Click a point on the map]",
@@ -129,16 +122,16 @@ var App = function () {
         style: headerStyle,
       }),
       ui.Label({
-        value: "GCOM-C/SGLI L3 Sea Surface Temperature (V3)",
+        value: "GCOM-C/SGLI L3 Chlorophyll-a Concentration (V3) ",
         style: { margin: "4px 8px 0" },
         targetUrl:
-          "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_OCEAN_SST_V3",
+          "https://developers.google.com/earth-engine/datasets/catalog/JAXA_GCOM-C_L3_OCEAN_CHLA_V3",
       }),
       ui.Label({
         value: "Official detail",
         style: { margin: "4px 8px 8px" },
         targetUrl:
-          "https://suzaku.eorc.jaxa.jp/GCOM_C/data/update/Algorithm_SST_en.html",
+          "https://suzaku.eorc.jaxa.jp/GCOM_C/data/update/Algorithm_IWPR_en.html",
       }),
       ui.Label({
         value: "Source Code",
@@ -158,16 +151,16 @@ App.prototype.getStartAndEndDates = function () {
   return this.panel.widgets().get(DATE_SLIDER_WIDGET_INDEX).getValue();
 };
 
-App.prototype.updateSSTLayer = function () {
+App.prototype.updateCHLALayer = function () {
   var dates = this.getStartAndEndDates();
 
   var layer = ui.Map.Layer({
-    eeObject: sstData.periodMeanImage(dates[0], dates[1]),
-    visParams: sstVisParams,
-    name: "SST",
+    eeObject: chlaData.periodMeanImage(dates[0], dates[1]).log10(),
+    visParams: chlaVisParams,
+    name: "CHLA",
   });
 
-  this.map.layers().set(SST_LAYER_INDEX, layer);
+  this.map.layers().set(CHLA_LAYER_INDEX, layer);
 };
 
 App.prototype.updatePointLayer = function () {
@@ -180,42 +173,26 @@ App.prototype.updatePointLayer = function () {
       name: "Point",
     })
   );
-
-  var pointCoordsLabel = this.panel.widgets().get(POINT_COORDS_WIDGET_INDEX);
-  pointCoordsLabel.setValue(
-    "Coordinates: (" + this.coords.lon + ", " + this.coords.lat + ")"
-  );
-};
-
-App.prototype.updatePointValueLabel = function () {
-  var dates = this.getStartAndEndDates();
-  var pointValueLabel = this.panel.widgets().get(POINT_VALUE_WIDGET_INDEX);
-
-  sstData
-    .periodMeanPointValue(dates[0], dates[1], this.coords)
-    .evaluate(function (value) {
-      if (value) {
-        pointValueLabel.setValue("Value: " + value.toFixed(2) + " ℃");
-      } else {
-        // 陸などデータがない場合
-        pointValueLabel.setValue("Value: N/A");
-      }
-    });
 };
 
 App.prototype.updatePointChart = function () {
   var chart = ui.Chart.image
-    .doySeriesByYear({
-      imageCollection: sstData.celsiusCollection(),
-      bandName: "SST_AVE",
+    .series({
+      imageCollection: chlaData.celsiusCollection(),
       region: ee.Geometry.Point({ coords: [this.coords.lon, this.coords.lat] }),
-      regionReducer: ee.Reducer.first(),
+      reducer: ee.Reducer.first(),
     })
+    .setSeriesNames(["CHLA"])
     .setOptions({
       title:
-        "SST time series at (" + this.coords.lon + ", " + this.coords.lat + ")",
-      hAxis: { title: "Day of year" },
-      vAxis: { title: "SST (℃)" },
+        "CHLA time series at (" +
+        this.coords.lon +
+        ", " +
+        this.coords.lat +
+        ")",
+      legend: { position: "none" },
+      hAxis: { title: null },
+      vAxis: { title: "CHLA (mg/m^3)", logScale: true },
       interpolateNulls: true,
     });
 
