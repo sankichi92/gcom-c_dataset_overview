@@ -7,6 +7,7 @@
 - [Land Surface Temperature](https://sankichi92.users.earthengine.app/view/gcom-c-lst-overview)
 - [Leaf Area Index](https://sankichi92.users.earthengine.app/view/gcom-c-lai-overview)
 - [Sea Surface Temperature](https://sankichi92.users.earthengine.app/view/gcom-c-sst-overview)
+- [Chlorophyll-a Concentration](https://sankichi92.users.earthengine.app/view/gcom-c-chla-overview)
 
 ## Add repo to Code Editor
 
